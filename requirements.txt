@@ -1,0 +1,8 @@
+langchain-groq
+langchain
+pinecone-client
+langchain-community
+pinecone-client[grpc]
+langchain-pinecone
+sentence-transformers
+ipykernel
