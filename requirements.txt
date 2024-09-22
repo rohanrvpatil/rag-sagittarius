@@ -5,4 +5,5 @@ langchain-community
 pinecone-client[grpc]
 langchain-pinecone
 sentence-transformers
+streamlit
 ipykernel
