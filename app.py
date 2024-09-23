@@ -37,10 +37,10 @@ os.environ['PINECONE_API_KEY'] = pinecone_api_key
 llm = ChatGroq(model="llama3-8b-8192", api_key=groq_api_key)
 
 # Load and process documents
-loader = TextLoader('./data.txt')
-documents = loader.load()
-text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=4)
-docs = text_splitter.split_documents(documents)
+# loader = TextLoader('./data.txt')
+# documents = loader.load()
+# text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=4)
+# docs = text_splitter.split_documents(documents)
 embeddings = HuggingFaceEmbeddings()
 
 # Initialize Pinecone
@@ -56,10 +56,13 @@ index_name = "rag-index"
 #   docsearch = Pinecone.from_documents(docs, embeddings, index_name=index_name) #docsearch stores the embeddings of the docs
 # else:
 
-loader = TextLoader('./data.txt')
-documents = loader.load()
-#docs[0].page_content
-docsearch = PineconeVectorStore.from_texts(texts=documents,embedding=embeddings, index_name=index_name)
+file_name = "output.txt"
+
+# Read the content from the file and store it in a variable
+with open(file_name, "r") as file:
+    output_text = file.read()
+
+docsearch = PineconeVectorStore.from_texts(texts=output_text,embedding=embeddings, index_name=index_name)
 
 # Define prompt template
 template = """
