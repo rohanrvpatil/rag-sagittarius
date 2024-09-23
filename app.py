@@ -51,10 +51,10 @@ def get_docsearch():
     #pc = Pinecone(api_key=pinecone_api_key)
     index_name = "rag-index"
     
-    with open("output.txt", "r") as file:
-        output_text = file.read()
+    with open("data.txt", "r") as file:
+        data_text = file.read()
     
-    return PineconeVectorStore.from_texts(texts=output_text,embedding=embeddings, index_name=index_name)
+    return PineconeVectorStore.from_texts(texts=data_text,embedding=embeddings, index_name=index_name)
 
 # Initialize Pinecone
 
