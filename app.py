@@ -87,6 +87,9 @@ rag_chain = (
 
 # Streamlit input and output
 user_input = st.text_input("As a person of Sagittarius zodiac, ask anything about how your July 2024 be:")
-if user_input:
-    result = rag_chain.invoke(user_input)
-    st.write(result)
+if st.button("Generate answer"):
+    if user_input:
+        result = rag_chain.invoke(user_input)
+        st.write(result)
+    else:
+        st.write("Please enter a question.")
