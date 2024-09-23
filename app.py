@@ -34,19 +34,28 @@ os.environ['PINECONE_API_KEY'] = pinecone_api_key
 
 
 # Initialize LLM
-llm = ChatGroq(model="llama3-8b-8192", api_key=groq_api_key)
+@st.cache_resource
+def get_llm():
+    return ChatGroq(model="llama3-8b-8192", api_key=groq_api_key)
 
 # Load and process documents
 # loader = TextLoader('./data.txt')
 # documents = loader.load()
 # text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=4)
 # docs = text_splitter.split_documents(documents)
-embeddings = HuggingFaceEmbeddings()
+
+@st.cache_resource
+def get_docsearch():
+    embeddings = HuggingFaceEmbeddings()
+    #pc = Pinecone(api_key=pinecone_api_key)
+    index_name = "rag-index"
+    
+    with open("output.txt", "r") as file:
+        output_text = file.read()
+    
+    return PineconeVectorStore.from_texts(texts=output_text,embedding=embeddings, index_name=index_name)
 
 # Initialize Pinecone
-pc = Pinecone(api_key=st.secrets["general"]["pinecone_api_key"]) 
-
-index_name = "rag-index"
 
 # if index_name not in pc.list_indexes().names():
 #   pc.create_index(name=index_name, metric="cosine", dimension=768, spec=ServerlessSpec(
@@ -56,13 +65,7 @@ index_name = "rag-index"
 #   docsearch = Pinecone.from_documents(docs, embeddings, index_name=index_name) #docsearch stores the embeddings of the docs
 # else:
 
-file_name = "output.txt"
 
-# Read the content from the file and store it in a variable
-with open(file_name, "r") as file:
-    output_text = file.read()
-
-docsearch = PineconeVectorStore.from_texts(texts=output_text,embedding=embeddings, index_name=index_name)
 
 # Define prompt template
 template = """
@@ -78,18 +81,25 @@ Answer:
 prompt = PromptTemplate(template=template, input_variables=["context", "question"])
 
 # Define RAG chain
-rag_chain = (
-    {"context": docsearch.as_retriever(), "question": RunnablePassthrough()} 
-    | prompt 
-    | llm
-    | StrOutputParser()
-)
+@st.cache_resource
+def get_rag_chain():
+    llm = get_llm()
+    docsearch = get_docsearch()
+    return (
+        {"context": docsearch.as_retriever(), "question": RunnablePassthrough()} 
+        | prompt 
+        | llm
+        | StrOutputParser()
+    )
+
+rag_chain = get_rag_chain()
 
 # Streamlit input and output
 user_input = st.text_input("As a person of Sagittarius zodiac, ask anything about how your July 2024 be:")
 if st.button("Generate answer"):
     if user_input:
-        result = rag_chain.invoke(user_input)
+        with st.spinner("Generating answer..."):
+            result = rag_chain.invoke(user_input)
         st.write(result)
     else:
         st.write("Please enter a question.")
